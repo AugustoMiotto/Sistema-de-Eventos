@@ -1,27 +1,44 @@
 <?php
 
+use App\Models\Event;
+use App\Models\Category;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EventoController;
+use Illuminate\Http\Request;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PromoterController;
-// ... existing code ...
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
-Route::get('/eventos', [EventoController::class, 'index']);
-Route::get('/eventos/create', [EventoController::class, 'create']);
-Route::post('/eventos', [EventoController::class, 'store']);
-Route::get('/eventos/{evento}', [EventoController::class, 'show']);
-Route::get('/eventos/{evento}/edit', [EventoController::class, 'edit']);
-Route::put('/eventos/{evento}', [EventoController::class, 'update']);
-Route::delete('/eventos/{evento}', [EventoController::class, 'destroy']);
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
-Route::get('/promoters', [PromoterController::class, 'index']);
-Route::get('/promoters/create', [PromoterController::class, 'create']);
-Route::post('/promoters', [PromoterController::class, 'store']);
-Route::get('/promoters/{promoter}', [PromoterController::class, 'show']);
-Route::get('/promoters/{promoter}/edit', [PromoterController::class, 'edit']);
-Route::put('/promoters/{promoter}', [PromoterController::class, 'update']);
-Route::delete('/promoters/{promoter}', [PromoterController::class, 'destroy']);
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Rotas de Categorias
+        Route::get('/categorias/criar', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('/categorias', [CategoryController::class, 'store'])->name('categories.store');
+
+    // Rotas de Eventos
+        Route::get('/eventos/criar', [EventController::class, 'create'])->name('events.create');
+        Route::post('/eventos', [EventController::class, 'store'])->name('events.store');
+        Route::get('/eventos/{event}/editar', [EventController::class, 'edit'])->name('events.edit');
+        Route::put('/eventos/{event}', [EventController::class, 'update'])->name('events.update');
+        Route::delete('/eventos/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+        //  Ver detalhes do evento
+            Route::get('/eventos/{event}', [EventController::class, 'show'])
+            ->name('events.show')
+            ->withTrashed();
+    // Painel do Promotor (Lista os eventos dele)
+        Route::get('/meus-eventos', [PromoterController::class, 'index'])->name('promoter.events');
+});
+
+require __DIR__.'/auth.php';

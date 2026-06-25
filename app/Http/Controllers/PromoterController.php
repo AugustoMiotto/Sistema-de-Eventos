@@ -2,63 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use Illuminate\Http\Request;
 
 class PromoterController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
-    }
+        if (!auth()->user()->is_promoter) {
+            abort(403, 'Acesso restrito: Apenas promotores podem aceder a esta área.');
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        // O 'withTrashed()' diz ao Laravel para trazer também os excluídos
+        $events = Event::with('category')
+            ->where('promoter_id', auth()->id())
+            ->withTrashed()
+            ->orderBy('start_at', 'desc')
+            ->paginate(10);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return view('promoter.events.index', compact('events'));
     }
 }

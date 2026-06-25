@@ -1,0 +1,54 @@
+<x-guest-layout>
+    <form method="POST" action="{{ route('register') }}">
+        @csrf
+
+        <div>
+            <label for="name" class="block font-medium text-sm text-gray-700">Nome</label>
+            <input id="name" class="block mt-1 w-full border-gray-300 focus:border-[#32A041] focus:ring-[#32A041] rounded-md shadow-sm"
+                   type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" />
+            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        </div>
+
+        <div class="mt-4">
+            <label for="email" class="block font-medium text-sm text-gray-700">E-mail</label>
+            <input id="email" class="block mt-1 w-full border-gray-300 focus:border-[#32A041] focus:ring-[#32A041] rounded-md shadow-sm"
+                   type="email" name="email" value="{{ old('email') }}" required autocomplete="username" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        </div>
+
+        <div class="mt-4">
+            <label for="password" class="block font-medium text-sm text-gray-700">Senha</label>
+            <input id="password" class="block mt-1 w-full border-gray-300 focus:border-[#32A041] focus:ring-[#32A041] rounded-md shadow-sm"
+                   type="password" name="password" required autocomplete="new-password" />
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        </div>
+
+        <div class="mt-4">
+            <label for="password_confirmation" class="block font-medium text-sm text-gray-700">Confirmar Senha</label>
+            <input id="password_confirmation" class="block mt-1 w-full border-gray-300 focus:border-[#32A041] focus:ring-[#32A041] rounded-md shadow-sm"
+                   type="password" name="password_confirmation" required autocomplete="new-password" />
+            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        </div>
+
+        <div class="block mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md">
+            <label for="is_promoter" class="inline-flex items-start">
+                <input id="is_promoter" type="checkbox" name="is_promoter" value="1"
+                       class="mt-1 rounded border-gray-300 text-[#32A041] shadow-sm focus:ring-[#32A041]">
+                <div class="ms-3 text-sm">
+                    <span class="font-medium text-gray-700">Conta de Promotor</span>
+                    <p class="text-gray-500">Desejo criar e gerir os meus próprios eventos na plataforma.</p>
+                </div>
+            </label>
+        </div>
+
+        <div class="flex items-center justify-between mt-6">
+            <a class="underline text-sm text-gray-600 hover:text-[#32A041] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#32A041]" href="{{ route('login') }}">
+                Já possui uma conta?
+            </a>
+
+            <button type="submit" class="ms-4 inline-flex items-center px-4 py-2 bg-[#32A041] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-[#32A041] focus:ring-offset-2 transition ease-in-out duration-150">
+                Cadastrar
+            </button>
+        </div>
+    </form>
+</x-guest-layout>
