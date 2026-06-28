@@ -40,16 +40,23 @@ class Event extends Model
         ];
     }
 
+    public function users()
+{
+    return $this->belongsToMany(User::class, 'registrations')
+                ->withPivot('status')
+                ->withTimestamps();
+}
+
     // Relação: O Evento pertence a um Promotor (User)
     public function promoter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'promoter_id');
     }
 
-    // Relação: O Evento pode ter um Palestrante
-    public function speaker(): BelongsTo
+    // Um evento possui vários palestrantes
+    public function speakers()
     {
-        return $this->belongsTo(Speaker::class);
+        return $this->belongsToMany(Speaker::class);
     }
 
     // Relação: O Evento pertence a uma Categoria

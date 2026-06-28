@@ -19,17 +19,25 @@
                             <x-input-error :messages="$errors->get('name')" class="mt-2" />
                         </div>
 
-                        <div>
-                            <label for="category_id" class="block font-medium text-sm text-gray-700">Categoria</label>
-                            <select id="category_id" name="category_id" required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#32A041] focus:ring-[#32A041]">
+                        <div x-data="categoryForm()">
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="category_id" class="block font-medium text-sm text-gray-700">Categoria</label>
+                                <button type="button" @click="openModal = true" class="text-xs text-[#32A041] hover:text-green-800 hover:underline font-bold transition">
+                                    Não achou a categoria? Crie agora mesmo!
+                                </button>
+                            </div>
+
+                            <select id="category_id" name="category_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#32A041] focus:ring-[#32A041]">
+                                <option value="">Selecione uma categoria...</option>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id', $event->category_id) == $category->id ? 'selected' : '' }}>
+                                    <option value="{{ $category->id }}" {{ old('category_id', $event->category_id ?? '') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
                             </select>
                             <x-input-error :messages="$errors->get('category_id')" class="mt-2" />
+
+                            <x-category-modal />
                         </div>
 
                         <div>
@@ -75,6 +83,15 @@
                             <x-input-error :messages="$errors->get('description')" class="mt-2" />
                         </div>
 
+                        <div class="md:col-span-2">
+                            <x-input-error :messages="$errors->get('speaker_ids')" class="mt-2" />
+
+                            <x-speaker-modal
+                                :speakers="$speakers"
+                                :currentSpeakers="$event->speakers->pluck('id')->toArray()"
+                            />
+                        </div>
+
                         <div class="md:col-span-2 border-t border-gray-100 pt-4">
                             <label class="block font-medium text-sm text-gray-700 mb-2">Foto de Capa</label>
 
@@ -104,4 +121,5 @@
             </div>
         </div>
     </div>
+<x-event-modals-scripts />
 </x-app-layout>

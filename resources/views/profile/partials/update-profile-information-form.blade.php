@@ -28,7 +28,7 @@
             </div>
             <label class="block">
                 <span class="sr-only">Escolha a foto de perfil</span>
-                <input type="file" name="photo" accept="image/*"
+                <input type="file" name="profile_photo" accept="image/*"
                     class="block w-full text-sm text-gray-500
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-md file:border-0
@@ -51,17 +51,43 @@
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
         </div>
 
-        <div class="p-4 bg-gray-50 border border-gray-200 rounded-md">
-            <label for="is_promoter" class="inline-flex items-start">
-                <input id="is_promoter" type="checkbox" name="is_promoter" value="1"
-                       {{ $user->is_promoter ? 'checked' : '' }}
-                       class="mt-1 rounded border-gray-300 text-[#32A041] shadow-sm focus:ring-[#32A041]">
-                <div class="ms-3 text-sm">
-                    <span class="font-medium text-gray-700">Conta de Promotor</span>
-                    <p class="text-gray-500">Desejo criar e gerir os meus próprios eventos na plataforma.</p>
-                </div>
-            </label>
-        </div>
+       @php
+            $email = auth()->user()->email;
+            // É aluno?
+            $isStudent = preg_match('/@aluno\.[a-zA-Z0-9-]+\.ifrs\.edu\.br$/i', $email);
+            // É institucional (termina em ifrs.edu.br)?
+            $isInstitutional = preg_match('/@[a-zA-Z0-9-]+\.ifrs\.edu\.br$/i', $email);
+            // Só pode ser promotor se for institucional E NÃO for aluno
+            $canBePromoter = $isInstitutional && !$isStudent;
+        @endphp
+
+        @if($canBePromoter)
+            <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <label for="is_promoter" class="inline-flex items-center">
+                    <input id="is_promoter" type="checkbox" name="is_promoter" value="1"
+                           class="rounded border-gray-300 text-[#32A041] shadow-sm focus:ring-[#32A041]"
+                           {{ old('is_promoter', $user->is_promoter) ? 'checked' : '' }}>
+                    <span class="ms-2 text-sm text-gray-600">Desejo ativar o modo Promotor de Eventos</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1 ms-6">
+                    Ative esta opção para criar e gerenciar eventos na plataforma institucional.
+                </p>
+            </div>
+        @elseif($isStudent)
+            <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm text-red-600 font-medium">Modo Promotor Restrito (Discente)</p>
+                <p class="text-xs text-red-500 mt-1">
+                    De acordo com as regras institucionais, contas de discentes (alunos) não possuem permissão para criar eventos.
+                </p>
+            </div>
+        @else
+            <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-700 font-medium">Modo Promotor Indisponível (Conta Externa)</p>
+                <p class="text-xs text-yellow-600 mt-1">
+                    A criação de eventos é restrita a servidores do IFRS utilizando e-mail institucional. Sua conta pode ser usada normalmente para participar de eventos.
+                </p>
+            </div>
+        @endif
 
         <div class="flex items-center gap-4">
             <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#32A041] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-[#32A041] focus:ring-offset-2 transition ease-in-out duration-150">

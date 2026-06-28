@@ -73,8 +73,11 @@
                                                 @endif
                                             </td>
 
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                0 / {{ $event->max_slots }}
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                                                <span class="{{ $event->inscritos_ativos_count >= $event->max_slots ? 'text-red-600 font-bold' : 'text-gray-900 font-semibold' }}">
+                                                    {{ $event->inscritos_ativos_count }}
+                                                </span>
+                                                <span class="text-gray-400">/ {{ $event->max_slots }}</span>
                                             </td>
 
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

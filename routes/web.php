@@ -9,6 +9,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PromoterController;
+use App\Http\Controllers\SpeakerController;
+use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\EventAttendeeController;
+
 
 Route::get('/', function () {
     return view('auth.login');
@@ -39,6 +43,26 @@ Route::middleware('auth')->group(function () {
             ->withTrashed();
     // Painel do Promotor (Lista os eventos dele)
         Route::get('/meus-eventos', [PromoterController::class, 'index'])->name('promoter.events');
+    // Rotas de Palestrantes
+        Route::get('/palestrantes/novo', [SpeakerController::class, 'create'])->name('speakers.create');
+        Route::post('/api/palestrantes', [App\Http\Controllers\SpeakerController::class, 'storeAjax'])->name('speakers.storeAjax');
+        Route::post('/palestrantes', [SpeakerController::class, 'store'])->name('speakers.store');
+    //Rotas de Inscrições
+        Route::post('/events/{event}/register', [RegistrationController::class, 'store'])
+            ->name('events.register')
+            ->middleware('auth');
+        Route::delete('/events/{event}/cancel', [RegistrationController::class, 'destroy'])
+            ->name('events.cancel')
+            ->middleware('auth');
+
+    // Rotas de Relatórios
+        Route::get('/events/{event}/attendees', [EventAttendeeController::class, 'index'])
+                ->name('events.attendees')
+                ->middleware('auth');
+
+        Route::get('/events/{event}/attendees/export', [EventAttendeeController::class, 'exportCsv'])
+                ->name('events.attendees.export')
+                ->middleware('auth');
 });
 
 require __DIR__.'/auth.php';
