@@ -17,10 +17,12 @@ class EventController extends Controller
         }
 
         $categories = Category::orderBy('name')->get();
-        return view('events.create', compact('categories'));
+        $speakers = \App\Models\Speaker::orderBy('name')->get();
+        return view('events.create', compact('categories', 'speakers'));
     }
 
     // Salva o evento no banco
+   // Salva o evento no banco
     public function store(Request $request)
     {
         if (!auth()->user()->is_promoter) {
@@ -28,15 +30,21 @@ class EventController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'location' => ['required', 'string', 'max:255'],
-            'target_audience' => ['required', 'string', 'max:255'],
-            'max_slots' => ['required', 'integer', 'min:1'],
-            'start_at' => ['required', 'date', 'after:now'], // Evento tem de ser no futuro
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+    // 1. ARRAY DE REGRAS
+    'name' => ['required', 'string', 'max:255'],
+    'description' => ['nullable', 'string'],
+    'category_id' => ['required', 'exists:categories,id'],
+    'speaker_ids' => ['nullable', 'array'],
+    'speaker_ids.*' => ['exists:speakers,id'],
+    'location' => ['required', 'string', 'max:255'],
+    'target_audience' => ['required', 'string', 'max:255'],
+    'max_slots' => ['required', 'integer', 'min:1', 'max:999999'],
+    'start_at' => ['required', 'date', 'after:today'],
+    'price' => ['nullable', 'numeric', 'min:0'],
+    'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+        ], [
+            // ARRAY DE MENSAGENS CUSTOMIZADAS
+            'start_at.after_or_equal' => 'O campo data de início deve ser uma data de amanhã em diante',
         ]);
 
         // Trata o upload da imagem de capa
@@ -48,7 +56,8 @@ class EventController extends Controller
         // Determina se é gratuito baseado no valor enviado
         $isFree = empty($request->price) || $request->price <= 0;
 
-        Event::create([
+        // 1. PRIMEIRO: Cria o evento e guarda na variável $event
+        $event = Event::create([
             'promoter_id' => auth()->id(),
             'category_id' => $validated['category_id'],
             'name' => $validated['name'],
@@ -63,27 +72,36 @@ class EventController extends Controller
             'status' => 'New',
         ]);
 
+        // 2. DEPOIS: Com o evento criado (já com ID), vincula os palestrantes!
+        if (!empty($request->speaker_ids)) {
+            $event->speakers()->sync($request->speaker_ids);
+        }
+
         return redirect()->route('dashboard')->with('status', 'Evento publicado com sucesso!');
     }
+
     // Mostra os detalhes de um evento específico
     public function show(Event $event)
     {
-        // Carrega as informações da categoria e do promotor (usuário) ligadas a este evento
-        $event->load(['category', 'promoter']);
+        // Carrega as informações da categoria, do promotor e palestrante ligadas a este evento
+        $event->load(['category', 'promoter', 'speakers']);
+
 
         return view('events.show', compact('event'));
     }
 
     public function edit(Event $event)
-    {
-        // Segurança: Garante que apenas o promotor dono do evento pode editá-lo
-        if ($event->promoter_id !== auth()->id()) {
-            abort(403, 'Você não tem permissão para editar este evento.');
-        }
-
-        $categories = Category::orderBy('name')->get();
-        return view('events.edit', compact('event', 'categories'));
+{
+    if ($event->promoter_id !== auth()->id()) {
+        abort(403, 'Você não tem permissão para editar este evento.');
     }
+    $event->load('speakers');
+
+    $categories = Category::orderBy('name')->get();
+    $speakers = \App\Models\Speaker::orderBy('name')->get();
+
+    return view('events.edit', compact('event', 'categories', 'speakers'));
+}
 
     // Salva as alterações do evento
     public function update(Request $request, Event $event)
@@ -92,35 +110,44 @@ class EventController extends Controller
             abort(403);
         }
 
+        if ($event->start_at->isPast() && !$event->start_at->isToday()) {
+        return redirect()->back()
+            ->withInput()
+            ->withErrors(['start_at' => 'Não é possível editar um evento cuja data de início já passou.']);
+    }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
+            'speaker_ids' => ['nullable', 'array'], // Validação dos palestrantes
+            'speaker_ids.*' => ['exists:speakers,id'],
             'location' => ['required', 'string', 'max:255'],
             'target_audience' => ['required', 'string', 'max:255'],
-            'max_slots' => ['required', 'integer', 'min:1'],
-            'start_at' => ['required', 'date'],
+            'max_slots' => ['required', 'integer', 'min:1','max:999999'],
+            'start_at' => ['required', 'date', 'after_or_equal:today'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-        ]);
+        ],[
+        'start_at.after_or_equal' => 'A nova data de início deve ser de hoje em diante.',
+    ]);
 
-        // Trata o upload se uma NOVA foto de capa for enviada
         if ($request->hasFile('cover_photo')) {
-            // Apaga a foto antiga do servidor para não acumular lixo eletrônico
             if ($event->cover_photo) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($event->cover_photo);
             }
-            // Salva a nova
             $validated['cover_photo'] = $request->file('cover_photo')->store('events/covers', 'public');
         }
 
-        // Determina se mudou para gratuito ou pago
         $isFree = empty($request->price) || $request->price <= 0;
         $validated['is_free'] = $isFree;
         $validated['price'] = $isFree ? 0 : $request->price;
 
-        // Atualiza o registro no banco
         $event->update($validated);
+
+        // ATUALIZAÇÃO DOS PALESTRANTES
+        // Se vier vazio, o sync([]) remove todos. Se vier IDs, ele atualiza!
+        $event->speakers()->sync($request->input('speaker_ids', []));
 
         return redirect()->route('promoter.events')->with('status', 'Evento atualizado com sucesso!');
     }
@@ -137,4 +164,5 @@ class EventController extends Controller
 
         return redirect()->route('promoter.events')->with('status', 'Evento excluído com sucesso!');
     }
+
 }

@@ -12,7 +12,9 @@
         <div class="mt-4">
             <label for="email" class="block font-medium text-sm text-gray-700">E-mail</label>
             <input id="email" class="block mt-1 w-full border-gray-300 focus:border-[#32A041] focus:ring-[#32A041] rounded-md shadow-sm"
-                   type="email" name="email" value="{{ old('email') }}" required autocomplete="username" />
+                   type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
+                   x-data
+                   @input="$event.target.value = $event.target.value.toLowerCase().replace(/\s/g, '')" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
@@ -30,16 +32,6 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="block mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md">
-            <label for="is_promoter" class="inline-flex items-start">
-                <input id="is_promoter" type="checkbox" name="is_promoter" value="1"
-                       class="mt-1 rounded border-gray-300 text-[#32A041] shadow-sm focus:ring-[#32A041]">
-                <div class="ms-3 text-sm">
-                    <span class="font-medium text-gray-700">Conta de Promotor</span>
-                    <p class="text-gray-500">Desejo criar e gerir os meus próprios eventos na plataforma.</p>
-                </div>
-            </label>
-        </div>
 
         <div class="flex items-center justify-between mt-6">
             <a class="underline text-sm text-gray-600 hover:text-[#32A041] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#32A041]" href="{{ route('login') }}">

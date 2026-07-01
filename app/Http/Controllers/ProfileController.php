@@ -27,27 +27,33 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-
-        // Preenche o nome e email
         $user->fill($request->validated());
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        // 1. Atualiza o Modo Promotor (se o checkbox não for enviado, é falso)
-        $user->is_promoter = $request->has('is_promoter');
-
-        // 2. Lida com o Upload da Foto de Perfil
-        if ($request->hasFile('photo')) {
-            // Se já tinha uma foto antes, podemos apagar a antiga para poupar espaço
+        if ($request->hasFile('profile_photo')) {
+            // Se o usuário já tinha uma foto antiga, apaga ela para não acumular lixo
             if ($user->profile_photo_path) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_photo_path);
             }
 
-            // Guarda a nova foto na pasta 'profile-photos' e salva o caminho no banco
-            $path = $request->file('photo')->store('profile-photos', 'public');
-            $user->profile_photo_path = $path;
+            // Salva a nova foto na pasta 'users/photos' dentro do disco público
+            $user->profile_photo_path = $request->file('profile_photo')->store('users/photos', 'public');
+        }
+
+        // 🚨 REGRA IFRS GLOBAL DEFINITIVA
+        $email = $user->email;
+        $isStudent = preg_match('/@aluno\.[a-zA-Z0-9-]+\.ifrs\.edu\.br$/i', $email);
+        $isInstitutional = preg_match('/@[a-zA-Z0-9-]+\.ifrs\.edu\.br$/i', $email);
+
+        $canBePromoter = $isInstitutional && !$isStudent;
+
+        if (!$canBePromoter) {
+            $user->is_promoter = false;
+        } else {
+            $user->is_promoter = $request->has('is_promoter');
+        }
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
         $user->save();

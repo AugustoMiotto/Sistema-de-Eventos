@@ -30,7 +30,10 @@ class User extends Authenticatable
     // Relação: Um utilizador (promotor) pode ter vários eventos
     public function events(): HasMany
     {
-        return $this->hasMany(Event::class, 'promoter_id');
+        return $this->hasMany(Event::class, 'promoter_id')
+                    ->belongsToMany(Event::class, 'registrations')
+                    ->withPivot('status')
+                    ->withTimestamps();
     }
 
     // Relação: Um utilizador pode ter várias inscrições

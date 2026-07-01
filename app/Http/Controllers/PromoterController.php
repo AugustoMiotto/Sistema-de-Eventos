@@ -17,6 +17,10 @@ class PromoterController extends Controller
         $events = Event::with('category')
             ->where('promoter_id', auth()->id())
             ->withTrashed()
+            ->withCount(['users as inscritos_ativos_count' => function($query) {
+            $query->whereNull('registrations.deleted_at')
+                  ->where('registrations.status', 'Registered');
+        }])
             ->orderBy('start_at', 'desc')
             ->paginate(10);
 
