@@ -64,8 +64,8 @@
 
                         <div>
                             <label for="max_slots" class="block font-medium text-sm text-gray-700">Total de Vagas</label>
-                            <input type="number" id="max_slots" name="max_slots" value="{{ old('max_slots', $event->max_slots) }}" required min="1"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#32A041] focus:ring-[#32A041]">
+                            <input type="number" id="max_slots" name="max_slots" value="{{ old('max_slots', $event->max_slots) }}" required min="1" max="999999"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#32A041] focus:ring-[#32A041]">
                             <x-input-error :messages="$errors->get('max_slots')" class="mt-2" />
                         </div>
 

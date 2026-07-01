@@ -12,7 +12,9 @@
         <div class="mt-4">
             <label for="email" class="block font-medium text-sm text-gray-700">E-mail</label>
             <input id="email" class="block mt-1 w-full border-gray-300 focus:border-[#32A041] focus:ring-[#32A041] rounded-md shadow-sm"
-                   type="email" name="email" value="{{ old('email') }}" required autocomplete="username" />
+                   type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
+                   x-data
+                   @input="$event.target.value = $event.target.value.toLowerCase().replace(/\s/g, '')" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 

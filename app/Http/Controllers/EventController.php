@@ -30,17 +30,21 @@ class EventController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'speaker_ids' => ['nullable', 'array'],
-            'speaker_ids.*' => ['exists:speakers,id'],
-            'location' => ['required', 'string', 'max:255'],
-            'target_audience' => ['required', 'string', 'max:255'],
-            'max_slots' => ['required', 'integer', 'min:1'],
-            'start_at' => ['required', 'date', 'after:now'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+    // 1. ARRAY DE REGRAS
+    'name' => ['required', 'string', 'max:255'],
+    'description' => ['nullable', 'string'],
+    'category_id' => ['required', 'exists:categories,id'],
+    'speaker_ids' => ['nullable', 'array'],
+    'speaker_ids.*' => ['exists:speakers,id'],
+    'location' => ['required', 'string', 'max:255'],
+    'target_audience' => ['required', 'string', 'max:255'],
+    'max_slots' => ['required', 'integer', 'min:1', 'max:999999'],
+    'start_at' => ['required', 'date', 'after:today'],
+    'price' => ['nullable', 'numeric', 'min:0'],
+    'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+        ], [
+            // ARRAY DE MENSAGENS CUSTOMIZADAS
+            'start_at.after_or_equal' => 'O campo data de início deve ser uma data de amanhã em diante',
         ]);
 
         // Trata o upload da imagem de capa
@@ -106,6 +110,12 @@ class EventController extends Controller
             abort(403);
         }
 
+        if ($event->start_at->isPast() && !$event->start_at->isToday()) {
+        return redirect()->back()
+            ->withInput()
+            ->withErrors(['start_at' => 'Não é possível editar um evento cuja data de início já passou.']);
+    }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -114,11 +124,13 @@ class EventController extends Controller
             'speaker_ids.*' => ['exists:speakers,id'],
             'location' => ['required', 'string', 'max:255'],
             'target_audience' => ['required', 'string', 'max:255'],
-            'max_slots' => ['required', 'integer', 'min:1'],
-            'start_at' => ['required', 'date'],
+            'max_slots' => ['required', 'integer', 'min:1','max:999999'],
+            'start_at' => ['required', 'date', 'after_or_equal:today'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-        ]);
+        ],[
+        'start_at.after_or_equal' => 'A nova data de início deve ser de hoje em diante.',
+    ]);
 
         if ($request->hasFile('cover_photo')) {
             if ($event->cover_photo) {

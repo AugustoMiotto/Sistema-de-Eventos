@@ -4,8 +4,7 @@
             Informações do Perfil
         </h2>
         <p class="mt-1 text-sm text-gray-600">
-            Atualize as informações da sua conta, foto de perfil e endereço de e-mail.
-        </p>
+            Atualize as informações da sua conta e foto de perfil. </p>
     </header>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
@@ -46,8 +45,12 @@
         </div>
 
         <div>
-            <x-input-label for="email" value="E-mail" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full focus:border-[#32A041] focus:ring-[#32A041]" :value="old('email', $user->email)" required autocomplete="username" />
+            <x-input-label for="email" value="E-mail (Não alterável)" />
+            <x-text-input id="email" name="email" type="email"
+                          class="mt-1 block w-full bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300 shadow-sm focus:border-gray-300 focus:ring-0"
+                          :value="old('email', $user->email)"
+                          disabled readonly required autocomplete="username" />
+            <span class="text-xs text-gray-400 mt-1 block">O e-mail é vinculado à sua conta institucional e não pode ser alterado.</span>
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
         </div>
 
