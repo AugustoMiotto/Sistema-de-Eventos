@@ -44,7 +44,7 @@ class EventController extends Controller
     'cover_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
         ], [
             // ARRAY DE MENSAGENS CUSTOMIZADAS
-            'start_at.after_or_equal' => 'O campo data de início deve ser uma data de amanhã em diante',
+            'start_at.after' => 'O campo data de início deve ser uma data de amanhã em diante',
         ]);
 
         // Trata o upload da imagem de capa
